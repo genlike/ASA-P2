@@ -142,18 +142,18 @@ class PutoEdmond{
 		Node* _t;
 		uint maxFlow=0;
 		list<pair<uint,uint>*> * caminho;
-
 	public:
 		PutoEdmond(Graph* g){
 			_g = g;
 			_q = new queue<Node*>;
 			_fc = _g->getEdges();
+			vNodes = _g->getNodes();
 			initialize();
 		}
 		void initialize(){
 			_s = new Node(S);
 			_t = new Node(T);
-			vector<Node*>* vNodes = _g->getNodes();
+			
 			//s->setValue(0);
 			/*_g->(*nodes)[M*N+1]->setValue(0,0);*/
 			for (uint i=0; i<M*N; i++){
