@@ -9,10 +9,8 @@
 
 
 
-#define UP 0;
-#define RIGHT 1;
-#define DOWN 2;
-#define LEFT 3;
+#define S -1;
+#define T -2;
 
 #define getCoor(m,n) (N*m + n)
 namespace PP {
@@ -38,7 +36,7 @@ class Node{
 		//inline list<Node*>* getList(){ return _l; };
 		inline void setId(int id ) { _id= id; };
 		inline void setValue(uint index, uint value) {(*_values)[index] = value;};
-		inline uint getValue(uint ind = 0) {return (*_values)[ind+1];};
+		inline uint getValue(uint ind = 0) {return (*_values)[ind];};
 		inline list<Node*>* getAdj(){ return _viz; };
 
 };
@@ -130,6 +128,36 @@ class Mask{
 };
 
 
+class Relabel{
+	private:
+		Graph* _g;
+
+	public:
+		void initialize(){
+			Node* s = new Node(S);
+			Node* t = new Node(T);
+			_g->(*nodes)[M*N+0]->setValue(0,0); 
+			_g->(*nodes)[M*N+1]->setValue(0,0); 
+			for (int i=0; i<M; i++){
+				for (int j=0;j<N; j++){
+					int coor = getCoor(i,j);
+					uint value = _g->(*nodes)[coor]->getValue(0);
+					_g->edges->insert(pair<pair<uint,uint>,uint*>(make_pair(S,coor),value));
+					_g->edges->insert(pair<pair<uint,uint>,uint*>(make_pair(coor,S),value));
+					_g->edges->insert(pair<pair<uint,uint>,uint*>(make_pair(T,coor),value));
+					_g->edges->insert(pair<pair<uint,uint>,uint*>(make_pair(coor,T),value));
+				}
+			}
+		}
+
+		qualquer coisa run(){
+
+		}
+
+
+}
+
+
 Graph* parse() {
 	int m;
 	int n;
@@ -141,7 +169,7 @@ Graph* parse() {
 
 	int total = m*n;
 	
-	vector<Node*>* nodes = new vector<Node*>(total);
+	vector<Node*>* nodes = new vector<Node*>(total+2); //MAIS 2 PARA S E T
 	map<pair<uint,uint>,uint*>* edges = new map<pair<uint,uint>,uint*>; //ESTÁ PARA PONTEIRO NAO PARA INT
 	for (int i = 0 ; i<total; i++){
 		Node* nd = new Node(i);
