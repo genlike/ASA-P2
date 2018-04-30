@@ -76,7 +76,7 @@ class Graph{
 
 		Graph(vector<Node*> *nodes, map<pair<uint,uint>,pair<uint,uint*>>* edges){
 			_nodes=nodes;
-			cout << _nodes;
+			//cout << _nodes;
 			//_m=m;
 			_edges=edges;
 			//_e=e;
@@ -153,7 +153,6 @@ class PutoEdmond{
 		void initialize(){
 			_s = new Node(S);
 			_t = new Node(T);
-			
 			//s->setValue(0);
 			/*_g->(*nodes)[M*N+1]->setValue(0,0);*/
 			for (uint i=0; i<M*N; i++){
@@ -173,13 +172,25 @@ class PutoEdmond{
 
 		void run(){
 			do {
+				cout << "Pre BFS";
+				printResidual();
 				BFS();
+				cout << "Pro BFS";
+				printResidual();
 			} while( maxFlow > 0);
-			DFS();
+			//DFS();
 		}
 
+		void printResidual(){
+			map<pair<uint,uint>,pair<uint,uint*>>::iterator it = _fc->begin();
+			for(;it != _fc->end(); it++){
+				cout << '[' << it->first.first << ',' << it->first.second << ']' << "-("
+					<< it->second.first << ',' << *it->second.second << ')' << endl;
+			}
+		}
 		void BFS(){
 			for (uint i = 0; i< M*N; i++) {
+
 				(*vNodes)[i]->setColor(WHITE);
 				(*vNodes)[i]->setPapi(NULL);
 			}
@@ -194,11 +205,11 @@ class PutoEdmond{
 					pair<uint,uint*> fc = (*_fc)[make_pair(u->getId(),v->getId())];
 					if(v->getColor() == WHITE && (*fc.second - fc.first)>0){
 						v->setColor(GRAY);
-						pair<uint,uint> * e = new pair<uint,uint> (u->getId(), v->getId());
-						v->setPapi(e);
+						//pair<uint,uint> * e = new pair<uint,uint> (u->getId(), v->getId());
+						//v->setPapi(e);
 						_q->push(v);
 						if(v == _t){
-							actualizaFluxos(e);
+							//actualizaFluxos(e);
 							return;
 						}
 					}
