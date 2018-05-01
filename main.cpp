@@ -140,8 +140,8 @@ class PutoEdmond{
 		map<pair<uint,uint>,pair<uint,uint*>>* _fc;
 		Node* _s;
 		Node* _t;
-		uint maxFlow=0;
 		list<pair<uint,uint>*> * caminho;
+		uint maxFlow;
 	public:
 		PutoEdmond(Graph* g){
 			_g = g;
@@ -160,7 +160,8 @@ class PutoEdmond{
 					uint* value_b = new uint((*vNodes)[i]->getValue(1));
 					(*vNodes)[i]->getAdj()->push_front(_t);
 					_s->addViz((*vNodes)[i]);
-					if(value_w > value_b){
+					//cout << *value_w << '|' << *value_b << endl;
+					if(*value_w > *value_b){
 						_g->setEdge(make_pair(S,i),value_w, *value_w-*value_b);
 						_g->setEdge(make_pair(i,T),value_b, *value_b);
 					} else {
@@ -172,15 +173,35 @@ class PutoEdmond{
 
 		void run(){
 			do {
-				cout << "Pre BFS";
-				printResidual();
+				cout << "Pre BFS" << endl;
+				//printResidual();
+				maxFlow = -1;
 				BFS();
-				cout << "Pro BFS";
-				printResidual();
-			} while( maxFlow > 0);
+				//cout << "Pro BFS" << endl;
+				//printResidual();
+			} while( maxFlow != (uint)-1);
+			printResidual();
+			printFinalResult();
 			//DFS();
 		}
-
+		void printFinalResult(){
+			uint soma=0;
+			for (uint i=0; i < M*N; i++){
+				//cout << "FLUXO " << (*_fc)[make_pair(_s->getId(),i)].first << '-' << *(*_fc)[make_pair(_s->getId(),i)].second << endl;
+				soma += (*_fc)[make_pair(_s->getId(),i)].first;
+			}
+			char c;
+			cout << soma << endl << endl;
+			for(uint i=0; i<M; i++){
+				c = ((*vNodes)[getCoor(i,0)]->getColor()==WHITE)?'P':'C';
+				cout << c;
+				for(uint j=1; j<N; j++) {
+					c = ((*vNodes)[getCoor(i,j)]->getColor()==WHITE)?'P':'C';
+					cout << ' ' << c;
+				}
+				cout << endl;
+			}
+		}
 		void printResidual(){
 			map<pair<uint,uint>,pair<uint,uint*>>::iterator it = _fc->begin();
 			for(;it != _fc->end(); it++){
@@ -190,26 +211,31 @@ class PutoEdmond{
 		}
 		void BFS(){
 			for (uint i = 0; i< M*N; i++) {
-
 				(*vNodes)[i]->setColor(WHITE);
 				(*vNodes)[i]->setPapi(NULL);
 			}
 
 			caminho = new list<pair<uint,uint>*>;
 			_q->push(_s);
-			maxFlow = 0;
+
 			while (!_q->empty()){
+
 				Node* u = _q->front();
 				_q->pop();
+				//cout << u << endl;
 				for(Node * v: (*u->getAdj())){
 					pair<uint,uint*> fc = (*_fc)[make_pair(u->getId(),v->getId())];
+					//cout << u->getId() << '-' << v->getId() <<'&' << fc.first << '|' << *fc.second << '='<< (*fc.second - fc.first) << endl;
 					if(v->getColor() == WHITE && (*fc.second - fc.first)>0){
+						cout << "ENTROU" << endl;
 						v->setColor(GRAY);
-						//pair<uint,uint> * e = new pair<uint,uint> (u->getId(), v->getId());
-						//v->setPapi(e);
+						pair<uint,uint> * e = new pair<uint,uint> (u->getId(), v->getId());
+						v->setPapi(e);
 						_q->push(v);
+						//cout << v << '|' << _t << endl;
 						if(v == _t){
-							//actualizaFluxos(e);
+							cout << "actualizar Fluxo" << endl;
+							actualizaFluxos(e);
 							return;
 						}
 					}
@@ -220,17 +246,20 @@ class PutoEdmond{
 
 		void actualizaFluxos(pair<uint,uint>* ut){
 			uint edgeFlow = *(*_fc)[*ut].second - (*_fc)[*ut].first;
+
 			if(edgeFlow < maxFlow){
 				maxFlow = edgeFlow;
 			}
+
 			caminho->push_front(ut);
 
-			if((*vNodes)[ut->first] != _s){
+			if(ut->first != _s->getId()){
 				actualizaFluxos((*vNodes)[ut->first]->getPapi());
 			}
+			cout <<"MF" << maxFlow << endl;
 			(*_fc)[*ut].first +=maxFlow;
 		}
-
+/*
 		void DFS(){
 			for (uint i = 0; i< M*N; i++) {
 				(*vNodes)[i]->setColor(WHITE);
@@ -248,6 +277,7 @@ class PutoEdmond{
 			}
 			u->setColor(BLACK);
 		}
+*/
 };
 
 
