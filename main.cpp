@@ -17,7 +17,7 @@
 
 #define getCoor(m,n) (N*m + n)
 namespace PP {
-	typedef unsigned int uint;
+	typedef unsigned uint;
 }
 using namespace std;
 using namespace PP;
@@ -37,10 +37,10 @@ class Node{
 
 
 	public:
-		explicit Node (int id) { _id=id; }
+		explicit Node (uint id) { _id=id; }
 		inline uint getId() { return _id; }
 		//inline list<Node*>* getList(){ return _l; };
-		inline void setId(int id ) { _id= id; }
+		inline void setId(uint id ) { _id= id; }
 		inline void setValue(uint index, uint value) {(*_values)[index] = value;}
 		inline uint getValue(uint ind = 0) {return (*_values)[ind];}
 		inline char getCP(){ return (_white)?'P':'C'; }
@@ -158,19 +158,20 @@ class PutoEdmond{
 			for (uint i=0; i<M*N; i++){
 					uint* value_w = new uint((*vNodes)[i]->getValue());
 					uint* value_b = new uint((*vNodes)[i]->getValue(1));
-					(*vNodes)[i]->getAdj()->push_front(_t);
-					_s->addViz((*vNodes)[i]);
 					//cout << *value_w << '|' << *value_b << endl;
+
 					if(*value_w > *value_b){
 						totalFlow += *value_b;
 						*value_w -= *value_b;
+						_s->addViz((*vNodes)[i]);
 						_g->setEdge(make_pair(S,i),value_w, 0);  //value fluxo
-						_g->setEdge(make_pair(i,T),value_b, *value_b);
-					} else {
+					} else if (*value_w < *value_b){
+						(*vNodes)[i]->getAdj()->push_front(_t);
 						totalFlow += *value_w;
 						*value_b -= *value_w;
-						_g->setEdge(make_pair(S,i),value_w, *value_w);
 						_g->setEdge(make_pair(i,T),value_b, 0);
+					} else {
+						totalFlow += *value_w;
 					}
 			}
 		}
@@ -217,7 +218,7 @@ class PutoEdmond{
 		void BFS(){
 			for (uint i = 0; i< M*N; i++) {
 				(*vNodes)[i]->setColor(WHITE);
-				(*vNodes)[i]->setPapi(NULL);
+				//(*vNodes)[i]->setPapi(NULL);
 			}
 			_t->setColor(WHITE);
 			if (caminho){
