@@ -184,7 +184,7 @@ class PutoEdmond{
 				//cout << "Pro BFS" << endl;
 				//printResidual();
 				//cout << (*_fc)[make_pair(_s->getId(),0)].first;
-				printFinalResult();
+				//printFinalResult();
 			} while( maxFlow != (uint)-1);
 			//printResidual();
 			printFinalResult();
