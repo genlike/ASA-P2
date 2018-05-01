@@ -183,7 +183,7 @@ class PutoEdmond{
 				BFS();
 				//cout << "Pro BFS" << endl;
 				//printResidual();
-				cout << (*_fc)[make_pair(_s->getId(),0)].first;
+				//cout << (*_fc)[make_pair(_s->getId(),0)].first;
 				printFinalResult();
 			} while( maxFlow != (uint)-1);
 			//printResidual();
@@ -250,6 +250,7 @@ class PutoEdmond{
 						if(v == _t){
 							//cout << "actualizar Fluxo" << endl;
 							actualizaFluxos(e);
+							totalFlow += maxFlow;
 							delete _q;
 							return;
 						}
@@ -278,7 +279,7 @@ class PutoEdmond{
 			//cout << "-3-" << endl;
 			//cout << "MF" << maxFlow << endl;
 			pair<uint,uint> inv_ut = make_pair(ut->second,ut->first);
-			totalFlow += maxFlow;
+			//totalFlow += maxFlow;
 			(*_fc)[*ut].first += maxFlow;
 			//cout << "UT_INV" << ut->second << '-' << ut->first << '|'<< (*_fc)[inv_ut].first  << endl;
 			(*_fc)[inv_ut].first = -(*_fc)[*ut].first;
