@@ -145,7 +145,6 @@ class PutoEdmond{
 	public:
 		PutoEdmond(Graph* g){
 			_g = g;
-			_q = new queue<Node*>;
 			_fc = _g->getEdges();
 			vNodes = _g->getNodes();
 			initialize();
@@ -163,10 +162,14 @@ class PutoEdmond{
 					//cout << *value_w << '|' << *value_b << endl;
 					if(*value_w > *value_b){
 						_g->setEdge(make_pair(S,i),value_w, *value_w-*value_b);
+						_g->setEdge(make_pair(i,S),value_w, *value_b);
 						_g->setEdge(make_pair(i,T),value_b, *value_b);
+						_g->setEdge(make_pair(T,i),value_b, 0);
 					} else {
 						_g->setEdge(make_pair(S,i),value_w, *value_w);
+						_g->setEdge(make_pair(i,S),value_w, 0);
 						_g->setEdge(make_pair(i,T),value_b, *value_b-*value_w);
+						_g->setEdge(make_pair(T,i),value_b, *value_w);
 					}
 			}
 		}
@@ -187,7 +190,6 @@ class PutoEdmond{
 		void printFinalResult(){
 			uint soma=0;
 			for (uint i=0; i < M*N; i++){
-				//cout << "FLUXO " << (*_fc)[make_pair(_s->getId(),i)].first << '-' << *(*_fc)[make_pair(_s->getId(),i)].second << endl;
 				soma += (*_fc)[make_pair(_s->getId(),i)].first;
 			}
 			char c;
@@ -214,8 +216,12 @@ class PutoEdmond{
 				(*vNodes)[i]->setColor(WHITE);
 				(*vNodes)[i]->setPapi(NULL);
 			}
-
-			caminho = new list<pair<uint,uint>*>;
+			_t->setColor(WHITE);
+			if (caminho){
+				delete(caminho);
+			}
+			//caminho = new list<pair<uint,uint>*>;
+			_q = new queue<Node*>;
 			_q->push(_s);
 
 			while (!_q->empty()){
@@ -225,7 +231,7 @@ class PutoEdmond{
 				//cout << u << endl;
 				for(Node * v: (*u->getAdj())){
 					pair<uint,uint*> fc = (*_fc)[make_pair(u->getId(),v->getId())];
-					//cout << u->getId() << '-' << v->getId() <<'&' << fc.first << '|' << *fc.second << '='<< (*fc.second - fc.first) << endl;
+					cout << u->getId() << '-' << v->getId() <<'&' << fc.first << '|' << *fc.second << '='<< (*fc.second - fc.first) << endl;
 					if(v->getColor() == WHITE && (*fc.second - fc.first)>0){
 						cout << "ENTROU" << endl;
 						v->setColor(GRAY);
@@ -236,6 +242,7 @@ class PutoEdmond{
 						if(v == _t){
 							cout << "actualizar Fluxo" << endl;
 							actualizaFluxos(e);
+							delete _q;
 							return;
 						}
 					}
@@ -245,19 +252,28 @@ class PutoEdmond{
 		}
 
 		void actualizaFluxos(pair<uint,uint>* ut){
+			cout << "-1-" << ut->first <<'|'<< ut->second << endl;
 			uint edgeFlow = *(*_fc)[*ut].second - (*_fc)[*ut].first;
 
 			if(edgeFlow < maxFlow){
 				maxFlow = edgeFlow;
 			}
-
-			caminho->push_front(ut);
-
+			//cout << caminho << '|' << ut << endl;
+			//caminho->push_front(ut);
+			cout << "-2-" << ut->first << endl;
+			cout << 'S' << _s->getId() << endl;
+			cout << 'T' << _t->getId() << endl;
+			//cout << '-' << (*vNodes)[ut->first] << endl;
 			if(ut->first != _s->getId()){
 				actualizaFluxos((*vNodes)[ut->first]->getPapi());
 			}
-			cout <<"MF" << maxFlow << endl;
-			(*_fc)[*ut].first +=maxFlow;
+			cout << "-3-" << endl;
+			cout << "MF" << maxFlow << endl;
+			pair<uint,uint> inv_ut = make_pair(ut->second,ut->first);
+			(*_fc)[*ut].first += maxFlow;
+			cout << "UT_INV" << ut->second << '-' << ut->first << '|'<< (*_fc)[inv_ut].first  << endl;
+
+			(*_fc)[inv_ut].first = -(*_fc)[*ut].first;
 		}
 /*
 		void DFS(){
@@ -318,8 +334,9 @@ Graph* parse() {
 			cin >> *v_hor;
 			uint id1 = getCoor(i,j);
 			uint id2 = getCoor(i,j)+1;
-			edges->insert(pair<pair<uint,uint>,pair<uint, uint*>>(make_pair(id1,id2),make_pair(0,v_hor)));
-			edges->insert(pair<pair<uint,uint>,pair<uint, uint*>>(make_pair(id2, id1),make_pair(0,v_hor)));
+			edges->insert(pair<pair<uint,uint>,pair<uint, uint*>>(make_pair(id1,id2),make_pair(*v_hor,v_hor)));
+			edges->insert(pair<pair<uint,uint>,pair<uint, uint*>>(make_pair(id2, id1),make_pair(*v_hor,v_hor)));
+			*v_hor *= 2;
 			(*nodes)[id1]->addViz((*nodes)[id2]);
 			(*nodes)[id2]->addViz((*nodes)[id1]);
 
@@ -333,8 +350,9 @@ Graph* parse() {
 			cin >> *v_ver;
 			uint id1 = getCoor(i,j);
 			uint id2 = getCoor(i,j)+N;
-			edges->insert(pair<pair<uint,uint>,pair<uint, uint*>>(make_pair(id1,id2),make_pair(0,v_ver)));
-			edges->insert(pair<pair<uint,uint>,pair<uint, uint*>>(make_pair(id2,id1),make_pair(0,v_ver)));
+			edges->insert(pair<pair<uint,uint>,pair<uint, uint*>>(make_pair(id1,id2),make_pair(*v_ver,v_ver)));
+			edges->insert(pair<pair<uint,uint>,pair<uint, uint*>>(make_pair(id2,id1),make_pair(*v_ver,v_ver)));
+			*v_ver *= 2;
 			(*nodes)[id1]->addViz((*nodes)[id2]);
 			(*nodes)[id2]->addViz((*nodes)[id1]);
 		}
