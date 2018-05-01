@@ -4,9 +4,10 @@
 #include <stack>
 #include <climits>
 #include <set>
-#include <map>
+#include <unordered_map>
 #include <queue>
-
+#include <functional>
+#include <utility>
 
 
 #define S -1
@@ -20,6 +21,22 @@
 typedef unsigned ulint;
 using namespace std;
 
+/* SOURCE : https://stackoverflow.com/questions/32685540/unordered-map-with-pair-as-key-not-compiling?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa */
+struct pair_hash {
+    template <class T1, class T2>
+    std::size_t operator () (const std::pair<T1,T2> &p) const {
+        auto h1 = std::hash<T1>{}(p.first);
+        auto h2 = std::hash<T2>{}(p.second);
+        return h1 ^ h2;
+    }
+};
+struct pair_equal{
+	template <class T1, class T2>
+	bool operator()(const pair<T1, T2> &p,const pair<T1, T2> &t) const {
+		return p.first == t.first && p.second == t.second;
+	}
+}
+
 
 ulint N;
 ulint M;
@@ -31,7 +48,7 @@ class Node{
 		vector<ulint>* _values = new vector<ulint>(2);
 		list<Node*>* _viz = new list<Node*>;
 		ulint _color = WHITE;
-		pair<ulint,ulint>* _papi;
+		pair<ulint,ulint> _papi;
 		bool _white=1;
 
 
@@ -47,9 +64,9 @@ class Node{
 		inline list<Node*>* getAdj(){ return _viz; }
 		inline void addViz(Node* n){_viz->push_front(n);}
 		inline ulint getColor(){ return _color;}
-		inline pair<ulint,ulint>* getPapi() { return _papi;}
+		inline pair<ulint,ulint> getPapi() { return _papi;}
 		inline void setColor( ulint color) { _color = color;	}
-		inline void setPapi(pair<ulint,ulint>* papi) { _papi = papi; }
+		inline void setPapi(pair<ulint,ulint> papi) { _papi = papi; }
 
 };
 
@@ -58,22 +75,22 @@ class Graph{
 	private:
 		vector<Node*>*_nodes;
 		//unsigned long _m;
-		map<pair<ulint,ulint>,pair<int,ulint*>>* _edges;
+		unordered_map<pair<ulint,ulint>,pair<int,ulint*>,pair_hash>* _edges;
 		//unsigned long _e=0;
 
 	public:
 		//inline unsigned long getM(){return _m;};
 
-		inline pair<int,ulint*> getEdge(pair<ulint,ulint> nodes) {return (*_edges)[nodes];};
+		inline pair<int,ulint*> getEdge(pair<ulint,ulint> nodes) {return (*_edges).at(nodes);};
 		inline Node* getNode(ulint id) {
 			return (*_nodes)[id];
 		}
 		inline void setEdge(pair<ulint,ulint> nodes, ulint *value, int fluxo =0) {(*_edges).insert(pair<pair<ulint,ulint>,pair<ulint,ulint*>>(nodes,make_pair(fluxo,value)));}
 		//inline unsigned long getE(){return _e;};
 		inline vector<Node*>* getNodes(){return _nodes;}
-		inline map<pair<ulint,ulint>,pair<int,ulint*>>* getEdges(){ return _edges;}
+		inline unordered_map<pair<ulint,ulint>,pair<int,ulint*>,pair_hash>* getEdges(){ return _edges;}
 
-		Graph(vector<Node*> *nodes, map<pair<ulint,ulint>,pair<int,ulint*>>* edges){
+		Graph(vector<Node*> *nodes, unordered_map<pair<ulint,ulint>,pair<int,ulint*>,pair_hash>* edges){
 			_nodes=nodes;
 			//cout << _nodes;
 			//_m=m;
@@ -114,8 +131,8 @@ class Mask{
 				cout << _g->getNode((i*_w))->getValue(_matrix[i][0]) << '|' << i << '-' << 0;
 				for(ulint j=1; j<_w;j++) {
 					c = (_matrix[i][0])?'C':'P';
-					/*cout << ' ' << c;*/
-					cout << ' ' << _g->getNode((i*_w)+(j))->getValue(_matrix[i][j])<< '|' << i+1 << '-' << j;;
+					//cout << ' ' << c;
+					//cout << ' ' << _g->getNode((i*_w)+(j))->getValue(_matrix[i][j])<< '|' << i+1 << '-' << j;;
 				}
 				cout << endl;
 			}
@@ -136,7 +153,7 @@ class PutoEdmond{
 		Graph* _g;
 		queue<Node*>* _q;
 		vector<Node*>*  vNodes;
-		map<pair<ulint,ulint>,pair<int,ulint*>>* _fc;
+		unordered_map<pair<ulint,ulint>,pair<int,ulint*>,pair_hash>* _fc;
 		Node* _s;
 		Node* _t;
 		list<pair<ulint,ulint>*> * caminho;
@@ -154,7 +171,7 @@ class PutoEdmond{
 			_s = new Node(S);
 			_t = new Node(T);
 			//s->setValue(0);
-			/*_g->(*nodes)[M*N+1]->setValue(0,0);*/
+
 			for (ulint i=0; i<M*N; i++){
 					ulint* value_w = new ulint((*vNodes)[i]->getValue());
 					ulint* value_b = new ulint((*vNodes)[i]->getValue(1));
@@ -194,10 +211,7 @@ class PutoEdmond{
 			//DFS();
 		}
 		void printFinalResult(){
-			/*ulint soma=0;
-			for (ulint i=0; i < M*N; i++){
-				soma += (*_fc)[make_pair(_s->getId(),i)].first;
-			}*/
+
 			char c;
 			cout << totalFlow << endl << endl;
 			for(ulint i=0; i<M; i++){
@@ -210,17 +224,10 @@ class PutoEdmond{
 				cout << ' ' << endl;
 			}
 		}
-		void printResidual(){
-			map<pair<ulint,ulint>,pair<int,ulint*>>::iterator it = _fc->begin();
-			for(;it != _fc->end(); it++){
-				cout << '[' << it->first.first << ',' << it->first.second << ']' << "-("
-					<< it->second.first << ',' << *it->second.second << ')' << endl;
-			}
-		}
+
 		void BFS(){
 			for (ulint i = 0; i< M*N; i++) {
 				(*vNodes)[i]->setColor(WHITE);
-				if (!(*vNodes)[i]->getPapi()) delete((*vNodes)[i]->getPapi());
 			}
 			_t->setColor(WHITE);
 			if (caminho){
@@ -239,12 +246,12 @@ class PutoEdmond{
 				for(Node * v: (*u->getAdj())){
 					//cout << u->getId() << '-' << v->getId() << endl;
 					pair<int,ulint*> fc = (*_fc)[make_pair(u->getId(),v->getId())];
-					uint diff = *fc.second - fc.first; //cout << u->getId() << '-' << v->getId() <<'&' << fc.first << '|' << *fc.second << '='<< (*fc.second - fc.first) << endl;
+					ulint diff = *fc.second - fc.first; //cout << u->getId() << '-' << v->getId() <<'&' << fc.first << '|' << *fc.second << '='<< (*fc.second - fc.first) << endl;
 					if(v->getColor() == WHITE && (diff)>0){
 						//cout << "ENTROU" << endl;
 						if( (diff) < maxFlow) maxFlow = diff;
 						v->setColor(GRAY);
-						pair<ulint,ulint> * e = new pair<ulint,ulint> (u->getId(), v->getId());
+						pair<ulint,ulint> e = make_pair(u->getId(), v->getId());
 						v->setPapi(e);
 						_q->push(v);
 						//cout << v << '|' << _t << endl;
@@ -262,7 +269,7 @@ class PutoEdmond{
 			}
 		}
 
-		void actualizaFluxos(pair<ulint,ulint>* ut){
+		void actualizaFluxos(pair<ulint,ulint> ut){
 			//cout << "-1-" << ut->first <<'|'<< ut->second << endl;
 			//cout << caminho << '|' << ut << endl;
 			////caminho->push_front(ut);
@@ -270,9 +277,9 @@ class PutoEdmond{
 			//cout << 'S' << _s->getId() << endl;
 			//cout << 'T' << _t->getId() << endl;
 			////cout << '-' << (*vNodes)[ut->first] << endl;
-			(*_fc)[*ut].first += maxFlow;
-			if(ut->first != _s->getId()){
-				actualizaFluxos((*vNodes)[ut->first]->getPapi());
+			(*_fc)[ut].first += maxFlow;
+			if(ut.first != _s->getId()){
+				actualizaFluxos((*vNodes)[ut.first]->getPapi());
 			}
 			//cout << "-3-" << endl;
 			//cout << "MF" << maxFlow << endl;
@@ -282,25 +289,6 @@ class PutoEdmond{
 			//cout << "UT_INV" << ut->second << '-' << ut->first << '|'<< (*_fc)[inv_ut].first  << endl;
 			//(*_fc)[inv_ut].first = -(*_fc)[*ut].first;
 		}
-/*
-		void DFS(){
-			for (ulint i = 0; i< M*N; i++) {
-				(*vNodes)[i]->setColor(WHITE);
-			}
-			visitDFS(_s);
-		}
-		void visitDFS(Node * u){
-			u->setColor(GRAY);
-			u->setWHITE();
-
-			for(Node * v: (*u->getAdj())){
-				pair<ulint,ulint*> fc = (*_fc)[make_pair(u->getId(),v->getId())];
-				if(v->getColor() == WHITE && (*fc.second - fc.first)>0)
-					visitDFS(v);
-			}
-			u->setColor(BLACK);
-		}
-*/
 };
 
 
@@ -316,7 +304,7 @@ Graph* parse() {
 	int total = m*n;
 
 	vector<Node*>* nodes = new vector<Node*>(total+2); //MAIS 2 PARA S E T
-	map<pair<ulint,ulint>,pair<int,ulint*>>* edges = new map<pair<ulint,ulint>,pair<int,ulint*>>; //ESTÁ PARA PONTEIRO NAO PARA INT
+	unordered_map<pair<ulint,ulint>,pair<int,ulint*>,pair_hash>* edges = new unordered_map<pair<ulint,ulint>,pair<int,ulint*>,pair_hash>; //ESTÁ PARA PONTEIRO NAO PARA INT
 	for (int i = 0 ; i<total; i++){
 		Node* nd = new Node(i);
 		(*nodes)[i] = nd;
@@ -349,7 +337,7 @@ Graph* parse() {
 
 		}
 	}
-
+	cout << (*edges)[make_pair(0,1)] << endl;
 	ulint *v_ver;
 	for (int i=0; i<m-1; i++){
 		for (int j=0;j<n; j++){
@@ -370,11 +358,12 @@ Graph* parse() {
 
 int main() {
 	Graph *g = parse();
-	PutoEdmond* PE = new PutoEdmond(g);
-	PE->run();
+	//PutoEdmond* PE = new PutoEdmond(g);
+	//PE->run();
+
+
 //	Mask *m = new Mask(N,M,g);
 /*	cout << 'M' << endl;*/
 
 	return 0;
 }
-
