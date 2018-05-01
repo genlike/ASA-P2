@@ -162,12 +162,12 @@ class PutoEdmond{
 					_s->addViz((*vNodes)[i]);
 					//cout << *value_w << '|' << *value_b << endl;
 					if(*value_w > *value_b){
-						//totalFlow += *value_b;
+						totalFlow += *value_b;
 						*value_w -= *value_b;
-						_g->setEdge(make_pair(S,i),value_w, 0);
+						_g->setEdge(make_pair(S,i),value_w, 0);  //value fluxo
 						_g->setEdge(make_pair(i,T),value_b, *value_b);
 					} else {
-						//totalFlow += *value_w;
+						totalFlow += *value_w;
 						*value_b -= *value_w;
 						_g->setEdge(make_pair(S,i),value_w, *value_w);
 						_g->setEdge(make_pair(i,T),value_b, 0);
