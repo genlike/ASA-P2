@@ -204,7 +204,7 @@ class PutoEdmond{
 					c = ((*vNodes)[getCoor(i,j)]->getColor()==WHITE)?'P':'C';
 					cout << ' ' << c;
 				}
-				cout << endl;
+				cout << ' ' << endl;
 			}
 		}
 		void printResidual(){
